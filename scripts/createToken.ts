@@ -37,9 +37,9 @@ const MINT_CONFIG = {
 };
 
 const ON_CHAIN_METADATA = {
-  name: "DragonX Token",
-  symbol: "DRX",
-  uri: "https://bafkreigwfyxv7w2raeaind2htm6ntb6yh4n6kbvfupfe333xaobjtjks7q.ipfs.nftstorage.link/",
+  name: "DragonX Utility Token",
+  symbol: "DRY",
+  uri: "https://bafkreie3ob7gvb24lojqym4vx7bwr6smzxuvf3dcydgjfockebpc423vy4.ipfs.nftstorage.link/",
   sellerFeeBasisPoints: 0,
   creators: null,
   collection: null,
@@ -114,7 +114,7 @@ const createNewMintTransaction = async (
       mintKeypair.publicKey, // Mint
       mintAuthority, // Current authority
       AuthorityType.MintTokens, // New authority (null disables minting)
-      null, // Authority type (MintTokens indicates we're changing the minting authority)
+      deployer.publicKey, // Authority type (MintTokens indicates we're changing the minting authority)
       [] // Multi-signature owners, if applicable (empty if not using multi-sig)
     )
   );
@@ -126,6 +126,12 @@ const createToken = async (wallet: anchor.web3.Keypair) => {
   let mint_pk = Keypair.generate();
   console.log(`New token Address: `, mint_pk.publicKey.toString());
 
+  const anchorWallet = new anchor.Wallet(deployer);
+
+  const provider = new anchor.AnchorProvider(solanaConnection, anchorWallet, {
+    preflightCommitment: "confirmed",
+  });
+
   const newMintTransaction: Transaction = await createNewMintTransaction(
     solanaConnection,
     wallet,
@@ -135,39 +141,10 @@ const createToken = async (wallet: anchor.web3.Keypair) => {
     wallet.publicKey
   );
 
-  console.log("solana connection: ", solanaConnection.rpcEndpoint);
-  const { blockhash } = await solanaConnection.getLatestBlockhash();
-
-  newMintTransaction.recentBlockhash = blockhash;
-  console.log("fee payer: pubkey: ", wallet.publicKey.toString());
-  newMintTransaction.feePayer = wallet.publicKey;
-
-  const signers = [wallet, mint_pk];
-
-  if (signers.length > 0) {
-    newMintTransaction.partialSign(...signers);
-  }
-
-  const serializedTransaction = newMintTransaction.serialize();
-
-  const transactionId = await solanaConnection.sendRawTransaction(
-    serializedTransaction,
-    {
-      skipPreflight: true,
-      maxRetries: 10,
-    }
-  );
-
-  const confirmation = await solanaConnection.confirmTransaction(
-    transactionId,
-    "processed"
-  );
-
-  if (confirmation.value.err) {
-    console.error("Transaction failed", confirmation.value.err);
-  } else {
-    console.log("Transaction confirmed");
-  }
+  const transactionId = await provider.sendAndConfirm(newMintTransaction, [
+    wallet,
+    mint_pk,
+  ]);
 
   console.log(`Transaction ID: `, transactionId);
   console.log(
