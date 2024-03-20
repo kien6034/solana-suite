@@ -1,0 +1,14 @@
+
+.anchor
+.DS_Store
+**/*.rs.bk
+node_modules
+test-ledger
+.env
+target/bpfel-unknown-unknown
+target/debug
+target/release
+target/types
+target/.rustc_info.json
+target/deploy/swap.so
+recover.json
