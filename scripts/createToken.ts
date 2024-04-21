@@ -36,9 +36,9 @@ const MINT_CONFIG = {
 // fixed supply
 
 const ON_CHAIN_METADATA = {
-  name: "2CbGgNhvoN8danimsvB",
+  name: "Token",
   symbol: "TKA",
-  uri: "https://bafkreie3ob7gvb24lojqym4vx7bwr6smzxuvf3dcydgjfockebpc423vy4.ipfs.nftstorage.link/",
+  uri: "https://raw.githubusercontent.com/kien6034/solana-suite/main/scripts/rawuri.json",
   sellerFeeBasisPoints: 0,
   creators: null,
   collection: null,
