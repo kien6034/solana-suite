@@ -36,7 +36,7 @@ const MINT_CONFIG = {
 // fixed supply
 
 const ON_CHAIN_METADATA = {
-  name: "Token A",
+  name: "2CbGgNhvoN8danimsvB",
   symbol: "TKA",
   uri: "https://bafkreie3ob7gvb24lojqym4vx7bwr6smzxuvf3dcydgjfockebpc423vy4.ipfs.nftstorage.link/",
   sellerFeeBasisPoints: 0,
