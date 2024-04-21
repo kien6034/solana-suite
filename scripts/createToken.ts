@@ -33,10 +33,11 @@ const MINT_CONFIG = {
   numDecimals: 9,
   numberTokens: 300000000,
 };
+// fixed supply
 
 const ON_CHAIN_METADATA = {
-  name: "DragonX Utility Token",
-  symbol: "DRY",
+  name: "Token A",
+  symbol: "TKA",
   uri: "https://bafkreie3ob7gvb24lojqym4vx7bwr6smzxuvf3dcydgjfockebpc423vy4.ipfs.nftstorage.link/",
   sellerFeeBasisPoints: 0,
   creators: null,
@@ -74,7 +75,7 @@ const createNewMintTransaction = async (
       mintKeypair.publicKey, //Mint Address
       MINT_CONFIG.numDecimals, //Number of Decimals of New mint
       mintAuthority, //Mint Authority
-      freezeAuthority, //Freeze Authority
+      null, //Freeze Authority
       TOKEN_PROGRAM_ID
     ),
     createAssociatedTokenAccountInstruction(
@@ -114,7 +115,7 @@ const createNewMintTransaction = async (
       mintKeypair.publicKey, // Mint
       mintAuthority, // Current authority
       AuthorityType.MintTokens, // New authority (null disables minting)
-      mintAuthority, //TODO: make the function generic
+      null, //TODO: make the function generic
       [] // Multi-signature owners, if applicable (empty if not using multi-sig)
     )
   );
