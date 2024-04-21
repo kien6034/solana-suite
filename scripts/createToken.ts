@@ -15,8 +15,6 @@ import {
   createSetAuthorityInstruction,
   getAssociatedTokenAddress,
   getMinimumBalanceForRentExemptMint,
-  createFreezeAccountInstruction,
-  getMint,
 } from "@solana/spl-token";
 import {
   Connection,
@@ -25,7 +23,6 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { DecimalUtil } from "@orca-so/common-sdk";
 require("dotenv").config();
 
 const endpoint = "https://api.mainnet-beta.solana.com";
