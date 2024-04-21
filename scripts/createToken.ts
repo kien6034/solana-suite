@@ -23,14 +23,15 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-require("dotenv").config();
+import { DecimalUtil } from "@orca-so/common-sdk";
+import Decimal from "decimal.js";
 
-const endpoint = "https://api.mainnet-beta.solana.com";
-const solanaConnection = new anchor.web3.Connection(endpoint, "confirmed");
+import * as utils from "./utils/provider";
+require("dotenv").config();
 
 const MINT_CONFIG = {
   numDecimals: 9,
-  numberTokens: "300000000000000000",
+  numberTokens: 300000000,
 };
 
 const ON_CHAIN_METADATA = {
@@ -42,9 +43,6 @@ const ON_CHAIN_METADATA = {
   collection: null,
   uses: null,
 } as DataV2;
-
-const deployer: anchor.web3.Keypair = getDeployer();
-const provider: anchor.AnchorProvider = getProvider(deployer);
 
 const createNewMintTransaction = async (
   connection: Connection,
@@ -89,7 +87,12 @@ const createNewMintTransaction = async (
       mintKeypair.publicKey, //Mint
       tokenATA, //Destination Token Account
       mintAuthority, //Authority
-      BigInt(MINT_CONFIG.numberTokens) //Amount (in smallest unit of the token, i.e. 1 token = 1 * 10^decimals
+      BigInt(
+        DecimalUtil.toBN(
+          new Decimal(MINT_CONFIG.numberTokens),
+          MINT_CONFIG.numDecimals
+        ).toString()
+      ) //Amount (in smallest unit of the token, i.e. 1 token = 1 * 10^decimals
     ),
     createCreateMetadataAccountV3Instruction(
       {
@@ -111,7 +114,7 @@ const createNewMintTransaction = async (
       mintKeypair.publicKey, // Mint
       mintAuthority, // Current authority
       AuthorityType.MintTokens, // New authority (null disables minting)
-      deployer.publicKey, // Authority type (MintTokens indicates we're changing the minting authority)
+      mintAuthority, //TODO: make the function generic
       [] // Multi-signature owners, if applicable (empty if not using multi-sig)
     )
   );
@@ -119,18 +122,15 @@ const createNewMintTransaction = async (
   return createNewTokenTransaction;
 };
 
-const createToken = async (wallet: anchor.web3.Keypair) => {
+const createToken = async (
+  provider: anchor.AnchorProvider,
+  wallet: anchor.web3.Keypair
+) => {
   let mint_pk = Keypair.generate();
   console.log(`New token Address: `, mint_pk.publicKey.toString());
 
-  const anchorWallet = new anchor.Wallet(deployer);
-
-  const provider = new anchor.AnchorProvider(solanaConnection, anchorWallet, {
-    preflightCommitment: "confirmed",
-  });
-
   const newMintTransaction: Transaction = await createNewMintTransaction(
-    solanaConnection,
+    provider.connection,
     wallet,
     mint_pk,
     wallet.publicKey,
@@ -138,10 +138,14 @@ const createToken = async (wallet: anchor.web3.Keypair) => {
     wallet.publicKey
   );
 
-  const transactionId = await provider.sendAndConfirm(newMintTransaction, [
-    wallet,
-    mint_pk,
-  ]);
+  console.log("Sending transaction...");
+  const transactionId = await provider.sendAndConfirm(
+    newMintTransaction,
+    [wallet, mint_pk],
+    {
+      commitment: "confirmed",
+    }
+  );
 
   console.log(`Transaction ID: `, transactionId);
   console.log(
@@ -158,13 +162,13 @@ const createToken = async (wallet: anchor.web3.Keypair) => {
 };
 
 const main = async () => {
-  anchor.setProvider(provider);
-  const wallet = new anchor.Wallet(deployer);
+  const deployer: anchor.web3.Keypair = getDeployer();
+  const provider = utils.getProvider(deployer);
 
-  console.log("wallet: ", wallet.publicKey.toString());
-  console.log("wallet.payer: ", wallet.payer.publicKey.toString());
+  console.log("wallet: ", deployer.publicKey.toString());
+  console.log("provider: ", provider.connection.rpcEndpoint);
 
-  createToken(wallet.payer);
+  createToken(provider, deployer);
 };
 
 main().catch((error) => console.log(error));

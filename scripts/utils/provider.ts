@@ -3,7 +3,7 @@ import { ConfirmOptions } from "@solana/web3.js";
 import bs58 from "bs58";
 require("dotenv").config();
 
-export const rpc = "https://api.mainnet-beta.solana.com";
+export const rpc = "https://api.devnet.solana.com";
 export const options: ConfirmOptions = {
   commitment: "confirmed",
 };
